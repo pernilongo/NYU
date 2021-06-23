@@ -1,5 +1,5 @@
 #define QUEUEMAX 10
-#define MAPMAX 10
+#define MAPMAX 20
 #define TABLEMAX 10
 #define POOLMAX 10
 #define REFERENCEMAX 20
@@ -15,7 +15,7 @@ struct RCB
 	int process_id;
 };
 
-typedef struct PCB
+struct PCB
 {
 	int process_id;
 	int arrival_timestamp;
@@ -24,7 +24,7 @@ typedef struct PCB
 	int execution_endtime;
 	int remaining_bursttime;
 	int process_priority;
-} PCB;
+};
 
 struct MEMORY_BLOCK
 {
@@ -43,7 +43,7 @@ struct PTE
 	int reference_count;
 };
 
-int is_null(struct PCB pcb);
+int is_null(struct MEMORY_BLOCK mb);
 
 struct RCB handle_request_arrival_fcfs(struct RCB request_queue[QUEUEMAX], int *queue_cnt, struct RCB current_request, struct RCB new_request, int timestamp);
 struct RCB handle_request_completion_fcfs(struct RCB request_queue[QUEUEMAX], int *queue_cnt);
@@ -53,6 +53,7 @@ struct RCB handle_request_arrival_look(struct RCB request_queue[QUEUEMAX], int *
 struct RCB handle_request_completion_look(struct RCB request_queue[QUEUEMAX], int *queue_cnt, int current_cylinder, int scan_direction);
 struct MEMORY_BLOCK best_fit_allocate(int request_size, struct MEMORY_BLOCK memory_map[MAPMAX], int *map_cnt, int process_id);
 struct MEMORY_BLOCK first_fit_allocate(int request_size, struct MEMORY_BLOCK memory_map[MAPMAX], int *map_cnt, int process_id);
+struct MEMORY_BLOCK first_fit_allocate_end(int request_size, struct MEMORY_BLOCK memory_map[MAPMAX], int *map_cnt, int process_id);
 struct MEMORY_BLOCK worst_fit_allocate(int request_size, struct MEMORY_BLOCK memory_map[MAPMAX], int *map_cnt, int process_id);
 struct MEMORY_BLOCK next_fit_allocate(int request_size, struct MEMORY_BLOCK memory_map[MAPMAX], int *map_cnt, int process_id, int last_address);
 void release_memory(struct MEMORY_BLOCK freed_block, struct MEMORY_BLOCK memory_map[MAPMAX], int *map_cnt);

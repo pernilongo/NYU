@@ -1,27 +1,6 @@
 #include <stdio.h>
 #include "oslabs.h"
 
-struct PCB setup_pcb(
-	struct PCB *pcb,
-	int process_id,
-	int arrival_timestamp,
-	int total_bursttime,
-	int execution_starttime,
-	int execution_endtime,
-	int remaining_bursttime,
-	int process_priority)
-{
-	(*pcb).process_id = process_id;
-	(*pcb).arrival_timestamp = arrival_timestamp;
-	(*pcb).total_bursttime = total_bursttime;
-	(*pcb).execution_starttime = execution_starttime;
-	(*pcb).execution_endtime = execution_endtime;
-	(*pcb).remaining_bursttime = remaining_bursttime;
-	(*pcb).process_priority = process_priority;
-
-	return *pcb;
-}
-
 struct PCB get_process(const struct PCB processes[QUEUEMAX], int timestamp)
 {
 	struct PCB new_process = {0};
@@ -64,8 +43,8 @@ void print_process(const struct PCB p[QUEUEMAX])
 		printf("%d\t", waittime);
 		printf("%d\n", turnaround);
 	}
-	printf("Wait (avg): %f, (max): %d\n", 1.0*waittime_total/count, waittime_max);
-	printf("Turnaround (avg): %f, (max): %d\n", 1.0*turnaround_total/count, turnaround_max);
+	printf("Wait (avg): %f, (max): %d\n", 1.0 * waittime_total / count, waittime_max);
+	printf("Turnaround (avg): %f, (max): %d\n", 1.0 * turnaround_total / count, turnaround_max);
 }
 
 void handle_process()
