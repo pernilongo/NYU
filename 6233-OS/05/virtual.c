@@ -21,7 +21,7 @@ int process_page_access_fifo(
 	if (*frame_cnt > 0)
 	{
 		page_table[page_number].is_valid = 1;
-		page_table[page_number].frame_number = frame_pool[(*frame_cnt)--];
+		page_table[page_number].frame_number = frame_pool[--(*frame_cnt)];
 		page_table[page_number].arrival_timestamp = current_timestamp;
 		page_table[page_number].last_access_timestamp = current_timestamp;
 		page_table[page_number].reference_count = 1;
@@ -45,7 +45,7 @@ int process_page_access_fifo(
 	page_table[page_number].last_access_timestamp = current_timestamp;
 	page_table[page_number].reference_count = 1;
 
-	page_table[index] = (PTE){0, -1, -1, -1};
+	page_table[index] = (PTE){0, -1, -1, -1, -1};
 
 	return page_table[page_number].frame_number;
 }
@@ -53,13 +53,14 @@ int process_page_access_fifo(
 int count_page_faults_fifo(struct PTE page_table[TABLEMAX], int table_cnt, int reference_string[REFERENCEMAX], int reference_cnt, int frame_pool[POOLMAX], int frame_cnt)
 {
 	int faults = 0;
+	int timestamp = 1000;
 	for (int i = 0; i < reference_cnt; i++)
 	{
 		int page_number = reference_string[i];
 
 		if (page_table[page_number].is_valid)
 		{
-			page_table[page_number].last_access_timestamp = i;
+			page_table[page_number].last_access_timestamp = timestamp + i;
 			page_table[page_number].reference_count++;
 			continue;
 		}
@@ -69,31 +70,31 @@ int count_page_faults_fifo(struct PTE page_table[TABLEMAX], int table_cnt, int r
 		if (frame_cnt > 0)
 		{
 			page_table[page_number].is_valid = 1;
-			page_table[page_number].frame_number = frame_pool[frame_cnt--];
-			page_table[page_number].arrival_timestamp = i;
-			page_table[page_number].last_access_timestamp = i;
+			page_table[page_number].frame_number = frame_pool[--frame_cnt];
+			page_table[page_number].arrival_timestamp = timestamp + i;
+			page_table[page_number].last_access_timestamp = timestamp + i;
 			page_table[page_number].reference_count = 1;
 			continue;
 		}
 
 		int index = -1;
 		int arrival_timestamp = INT_MAX;
-		for (int i = 0; i < table_cnt; i++)
+		for (int j = 0; j < table_cnt; j++)
 		{
-			if (page_table[i].is_valid &&
-				page_table[i].arrival_timestamp < arrival_timestamp)
+			if (page_table[j].is_valid &&
+				page_table[j].arrival_timestamp < arrival_timestamp)
 			{
-				arrival_timestamp = page_table[i].arrival_timestamp;
-				index = i;
+				arrival_timestamp = page_table[j].arrival_timestamp;
+				index = j;
 			}
 		}
 		page_table[page_number].frame_number = page_table[index].frame_number;
 		page_table[page_number].is_valid = 1;
-		page_table[page_number].arrival_timestamp = i;
-		page_table[page_number].last_access_timestamp = i;
+		page_table[page_number].arrival_timestamp = timestamp + i;
+		page_table[page_number].last_access_timestamp = timestamp + i;
 		page_table[page_number].reference_count = 1;
 
-		page_table[index] = (PTE){0, -1, -1, -1};
+		page_table[index] = (PTE){0, -1, -1, -1, -1};
 	}
 
 	return faults;
@@ -111,7 +112,7 @@ int process_page_access_lru(struct PTE page_table[TABLEMAX], int *table_cnt, int
 	if (*frame_cnt > 0)
 	{
 		page_table[page_number].is_valid = 1;
-		page_table[page_number].frame_number = frame_pool[(*frame_cnt)--];
+		page_table[page_number].frame_number = frame_pool[--(*frame_cnt)];
 		page_table[page_number].arrival_timestamp = current_timestamp;
 		page_table[page_number].last_access_timestamp = current_timestamp;
 		page_table[page_number].reference_count = 1;
@@ -135,7 +136,7 @@ int process_page_access_lru(struct PTE page_table[TABLEMAX], int *table_cnt, int
 	page_table[page_number].last_access_timestamp = current_timestamp;
 	page_table[page_number].reference_count = 1;
 
-	page_table[index] = (PTE){0, -1, -1, -1};
+	page_table[index] = (PTE){0, -1, -1, -1, -1};
 
 	return page_table[page_number].frame_number;
 }
@@ -143,13 +144,14 @@ int process_page_access_lru(struct PTE page_table[TABLEMAX], int *table_cnt, int
 int count_page_faults_lru(struct PTE page_table[TABLEMAX], int table_cnt, int reference_string[REFERENCEMAX], int reference_cnt, int frame_pool[POOLMAX], int frame_cnt)
 {
 	int faults = 0;
+	int timestamp = 1000;
 	for (int i = 0; i < reference_cnt; i++)
 	{
 		int page_number = reference_string[i];
 
 		if (page_table[page_number].is_valid)
 		{
-			page_table[page_number].last_access_timestamp = i;
+			page_table[page_number].last_access_timestamp = timestamp + i;
 			page_table[page_number].reference_count++;
 			continue;
 		}
@@ -159,9 +161,9 @@ int count_page_faults_lru(struct PTE page_table[TABLEMAX], int table_cnt, int re
 		if (frame_cnt > 0)
 		{
 			page_table[page_number].is_valid = 1;
-			page_table[page_number].frame_number = frame_pool[frame_cnt--];
-			page_table[page_number].arrival_timestamp = i;
-			page_table[page_number].last_access_timestamp = i;
+			page_table[page_number].frame_number = frame_pool[--frame_cnt];
+			page_table[page_number].arrival_timestamp = timestamp + i;
+			page_table[page_number].last_access_timestamp = timestamp + i;
 			page_table[page_number].reference_count = 1;
 			continue;
 		}
@@ -179,11 +181,11 @@ int count_page_faults_lru(struct PTE page_table[TABLEMAX], int table_cnt, int re
 		}
 		page_table[page_number].frame_number = page_table[index].frame_number;
 		page_table[page_number].is_valid = 1;
-		page_table[page_number].arrival_timestamp = i;
-		page_table[page_number].last_access_timestamp = i;
+		page_table[page_number].arrival_timestamp = timestamp + i;
+		page_table[page_number].last_access_timestamp = timestamp + i;
 		page_table[page_number].reference_count = 1;
 
-		page_table[index] = (PTE){0, -1, -1, -1};
+		page_table[index] = (PTE){0, -1, -1, -1, -1};
 	}
 
 	return faults;
@@ -201,7 +203,7 @@ int process_page_access_lfu(struct PTE page_table[TABLEMAX], int *table_cnt, int
 	if (*frame_cnt > 0)
 	{
 		page_table[page_number].is_valid = 1;
-		page_table[page_number].frame_number = frame_pool[(*frame_cnt)--];
+		page_table[page_number].frame_number = frame_pool[--(*frame_cnt)];
 		page_table[page_number].arrival_timestamp = current_timestamp;
 		page_table[page_number].last_access_timestamp = current_timestamp;
 		page_table[page_number].reference_count = 1;
@@ -230,7 +232,7 @@ int process_page_access_lfu(struct PTE page_table[TABLEMAX], int *table_cnt, int
 	page_table[page_number].last_access_timestamp = current_timestamp;
 	page_table[page_number].reference_count = 1;
 
-	page_table[index] = (PTE){0, -1, -1, -1};
+	page_table[index] = (PTE){0, -1, -1, -1, -1};
 
 	return page_table[page_number].frame_number;
 }
@@ -238,13 +240,14 @@ int process_page_access_lfu(struct PTE page_table[TABLEMAX], int *table_cnt, int
 int count_page_faults_lfu(struct PTE page_table[TABLEMAX], int table_cnt, int reference_string[REFERENCEMAX], int reference_cnt, int frame_pool[POOLMAX], int frame_cnt)
 {
 	int faults = 0;
+	int timestamp = 1000;
 	for (int i = 0; i < reference_cnt; i++)
 	{
 		int page_number = reference_string[i];
 
 		if (page_table[page_number].is_valid)
 		{
-			page_table[page_number].last_access_timestamp = i;
+			page_table[page_number].last_access_timestamp = timestamp + i;
 			page_table[page_number].reference_count++;
 			continue;
 		}
@@ -254,36 +257,41 @@ int count_page_faults_lfu(struct PTE page_table[TABLEMAX], int table_cnt, int re
 		if (frame_cnt > 0)
 		{
 			page_table[page_number].is_valid = 1;
-			page_table[page_number].frame_number = frame_pool[frame_cnt--];
-			page_table[page_number].arrival_timestamp = i;
-			page_table[page_number].last_access_timestamp = i;
+			page_table[page_number].frame_number = frame_pool[--frame_cnt];
+			page_table[page_number].arrival_timestamp = timestamp + i;
+			page_table[page_number].last_access_timestamp = timestamp + i;
 			page_table[page_number].reference_count = 1;
 			continue;
 		}
 
-		int index = -1;
 		int reference_count = INT_MAX;
-		int arrival_timestamp = INT_MAX;
-		for (int i = 0; i < table_cnt; i++)
+		for (int j = 0; j < table_cnt; j++)
 		{
-			if (page_table[i].is_valid &&
-				page_table[i].reference_count <= reference_count)
+			if (page_table[j].is_valid &&
+				page_table[j].reference_count < reference_count)
 			{
-				reference_count = page_table[i].reference_count;
-				if (page_table[i].arrival_timestamp < arrival_timestamp)
-				{
-					arrival_timestamp = page_table[i].arrival_timestamp;
-					index = i;
-				}
+				reference_count = page_table[j].reference_count;
+			}
+		}
+		int index = -1;
+		int arrival_timestamp = INT_MAX;
+		for (int j = 0; j < table_cnt; j++)
+		{
+			if (page_table[j].is_valid &&
+				page_table[j].reference_count == reference_count &&
+				page_table[j].arrival_timestamp < arrival_timestamp)
+			{
+				arrival_timestamp = page_table[j].arrival_timestamp;
+				index = j;
 			}
 		}
 		page_table[page_number].frame_number = page_table[index].frame_number;
 		page_table[page_number].is_valid = 1;
-		page_table[page_number].arrival_timestamp = i;
-		page_table[page_number].last_access_timestamp = i;
+		page_table[page_number].arrival_timestamp = timestamp + i;
+		page_table[page_number].last_access_timestamp = timestamp + i;
 		page_table[page_number].reference_count = 1;
 
-		page_table[index] = (PTE){0, -1, -1, -1};
+		page_table[index] = (PTE){0, -1, -1, -1, -1};
 	}
 
 	return faults;
